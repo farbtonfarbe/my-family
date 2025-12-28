@@ -1137,7 +1137,7 @@ export function formatLifespan(person: { birth_date?: GenDate; death_date?: GenD
 	const death = person.death_date?.year;
 
 	if (!birth && !death) return '';
-	if (birth && !death) return `(b. ${birth})`;
-	if (!birth && death) return `(d. ${death})`;
-	return `(${birth}–${death})`;
+	if (birth && !death) return `(*${birth})`;
+	if (!birth && death) return `(†${death})`;
+	return `(*${birth}–†${death})`;
 }
