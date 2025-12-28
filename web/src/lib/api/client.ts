@@ -1061,62 +1061,71 @@ class ApiClient {
 export const api = new ApiClient();
 
 // Utility functions for formatting
+
+// Format a simple date (year, month, day) using locale
+function formatSimpleDate(year?: number, month?: number, day?: number): string {
+	if (!year) return '';
+
+	// Build a date object for formatting
+	// Use middle of month/year to avoid timezone issues
+	const m = month ?? 1;
+	const d = day ?? 15;
+	const dateObj = new Date(year, m - 1, d);
+
+	// Determine format based on available precision
+	if (day && month) {
+		// Full date: "January 12, 1765" or locale equivalent
+		return dateObj.toLocaleDateString(undefined, {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
+	} else if (month) {
+		// Month and year: "January 1765"
+		return dateObj.toLocaleDateString(undefined, {
+			year: 'numeric',
+			month: 'long'
+		});
+	} else {
+		// Year only
+		return year.toString();
+	}
+}
+
 export function formatGenDate(date?: GenDate): string {
 	if (!date) return '';
-	if (date.raw) return date.raw;
 
-	const parts: string[] = [];
-
-	if (date.qualifier && date.qualifier !== 'exact') {
-		parts.push(date.qualifier.toUpperCase());
+	// If no parsed year, fall back to raw (shouldn't happen often)
+	if (!date.year) {
+		return date.raw || '';
 	}
 
-	if (date.day) parts.push(date.day.toString());
+	const mainDate = formatSimpleDate(date.year, date.month, date.day);
 
-	if (date.month) {
-		const months = [
-			'JAN',
-			'FEB',
-			'MAR',
-			'APR',
-			'MAY',
-			'JUN',
-			'JUL',
-			'AUG',
-			'SEP',
-			'OCT',
-			'NOV',
-			'DEC'
-		];
-		parts.push(months[date.month - 1]);
-	}
-
-	if (date.year) parts.push(date.year.toString());
-
-	if (date.qualifier === 'bet' && date.year2) {
-		parts.push('AND');
-		if (date.day2) parts.push(date.day2.toString());
-		if (date.month2) {
-			const months = [
-				'JAN',
-				'FEB',
-				'MAR',
-				'APR',
-				'MAY',
-				'JUN',
-				'JUL',
-				'AUG',
-				'SEP',
-				'OCT',
-				'NOV',
-				'DEC'
-			];
-			parts.push(months[date.month2 - 1]);
+	switch (date.qualifier) {
+		case 'exact':
+			return mainDate;
+		case 'abt':
+			return `about ${mainDate}`;
+		case 'cal':
+			return `calculated ${mainDate}`;
+		case 'est':
+			return `estimated ${mainDate}`;
+		case 'bef':
+			return `before ${mainDate}`;
+		case 'aft':
+			return `after ${mainDate}`;
+		case 'bet': {
+			const endDate = formatSimpleDate(date.year2, date.month2, date.day2);
+			return `between ${mainDate} and ${endDate}`;
 		}
-		parts.push(date.year2.toString());
+		case 'from': {
+			const endDate = formatSimpleDate(date.year2, date.month2, date.day2);
+			return `from ${mainDate} to ${endDate}`;
+		}
+		default:
+			return mainDate;
 	}
-
-	return parts.join(' ');
 }
 
 export function formatPersonName(person: { given_name: string; surname: string }): string {
