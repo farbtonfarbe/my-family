@@ -8,6 +8,7 @@ services:
       - PORT=8080
       - LOG_LEVEL=info
       - LOG_FORMAT=json
+      - SQLITE_PATH=/data/myfamily.db
       # Uncomment the following lines to use PostgreSQL instead of SQLite:
       # - DATABASE_URL=postgres://myfamily:myfamily@postgres:5432/myfamily?sslmode=disable
     volumes:
