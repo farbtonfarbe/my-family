@@ -99,5 +99,5 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-// For local development, uncomment to use local gedcom-go:
-// replace github.com/cacack/gedcom-go => /Users/chris/devel/home/gedcom-go
+// Use fork with UTF-8 buffer boundary fix until merged upstream
+replace github.com/cacack/gedcom-go => github.com/farbtonfarbe/gedcom-go v0.0.0-20260126183004-e7689130c996
