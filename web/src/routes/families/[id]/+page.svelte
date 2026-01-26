@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { api, type FamilyDetail, formatGenDate, formatPersonName } from '$lib/api/client';
 	import ChangeHistory from '$lib/components/ChangeHistory.svelte';
+	import NotesSection from '$lib/components/NotesSection.svelte';
 	import { createShortcutHandler } from '$lib/keyboard/useShortcuts.svelte';
 
 	let family: FamilyDetail | null = $state(null);
@@ -258,6 +259,8 @@
 						<p class="empty-message">No children recorded</p>
 					</div>
 				{/if}
+
+				<NotesSection notes={family.notes} noteIds={family.note_ids} />
 
 				<div class="history-section">
 					<button class="history-header" onclick={toggleHistory}>

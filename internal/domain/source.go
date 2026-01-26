@@ -20,8 +20,9 @@ type Source struct {
 	RepositoryName string     `json:"repository_name,omitempty"` // Fallback for unlinked repositories
 	CollectionName string     `json:"collection_name,omitempty"`
 	CallNumber     string     `json:"call_number,omitempty"`
-	Notes          string     `json:"notes,omitempty"`
-	GedcomXref     string     `json:"gedcom_xref,omitempty"` // Original GEDCOM @XREF@ for round-trip
+	Notes          string      `json:"notes,omitempty"`
+	NoteIDs        []uuid.UUID `json:"note_ids,omitempty"`   // Cross-referenced Note records
+	GedcomXref     string      `json:"gedcom_xref,omitempty"` // Original GEDCOM @XREF@ for round-trip
 	Version        int64      `json:"version"`               // Optimistic locking version
 }
 

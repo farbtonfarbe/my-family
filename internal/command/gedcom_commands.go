@@ -238,6 +238,7 @@ func (h *Handler) importPerson(ctx context.Context, p gedcom.PersonData) error {
 		BirthPlace:    p.BirthPlace,
 		DeathPlace:    p.DeathPlace,
 		Notes:         p.Notes,
+		NoteIDs:       p.NoteIDs,
 		GedcomXref:    p.GedcomXref,
 		Version:       1,
 	}
@@ -300,6 +301,8 @@ func (h *Handler) importFamily(ctx context.Context, f gedcom.FamilyData) error {
 		Partner1ID:       f.Partner1ID,
 		Partner2ID:       f.Partner2ID,
 		RelationshipType: f.RelationshipType,
+		Notes:            f.Notes,
+		NoteIDs:          f.NoteIDs,
 		GedcomXref:       f.GedcomXref,
 		Version:          1,
 	}
@@ -348,6 +351,7 @@ func (h *Handler) importSource(ctx context.Context, s gedcom.SourceData) error {
 		RepositoryName: s.RepositoryName,
 		CallNumber:     s.CallNumber,
 		Notes:          s.Notes,
+		NoteIDs:        s.NoteIDs,
 		GedcomXref:     s.GedcomXref,
 		Version:        1,
 	}

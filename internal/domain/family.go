@@ -15,6 +15,8 @@ type Family struct {
 	RelationshipType RelationType `json:"relationship_type,omitempty"`
 	MarriageDate     *GenDate     `json:"marriage_date,omitempty"`
 	MarriagePlace    string       `json:"marriage_place,omitempty"`
+	Notes            string       `json:"notes,omitempty"`
+	NoteIDs          []uuid.UUID  `json:"note_ids,omitempty"`   // Cross-referenced Note records
 	GedcomXref       string       `json:"gedcom_xref,omitempty"` // Original GEDCOM @XREF@ for round-trip
 	Version          int64        `json:"version"`               // Optimistic locking version
 }

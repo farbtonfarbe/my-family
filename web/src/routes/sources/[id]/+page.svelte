@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { api, type SourceDetail, type Citation } from '$lib/api/client';
+	import NotesSection from '$lib/components/NotesSection.svelte';
 
 	let source: SourceDetail | null = $state(null);
 	let loading = $state(true);
@@ -304,12 +305,7 @@
 					</div>
 				{/if}
 
-				{#if source.notes}
-					<div class="info-section">
-						<h2>Notes</h2>
-						<p class="notes">{source.notes}</p>
-					</div>
-				{/if}
+				<NotesSection notes={source.notes} noteIds={source.note_ids} />
 
 				{#if getCitations().length > 0}
 					<div class="info-section">

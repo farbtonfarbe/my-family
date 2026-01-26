@@ -928,11 +928,15 @@ type Family struct {
 	MarriagePlaceLatitude *string `json:"marriage_place_latitude"`
 
 	// MarriagePlaceLongitude Longitude in GEDCOM format (e.g., "W89.6501")
-	MarriagePlaceLongitude *string                 `json:"marriage_place_longitude"`
-	Partner1Id             *openapi_types.UUID     `json:"partner1_id,omitempty"`
-	Partner2Id             *openapi_types.UUID     `json:"partner2_id,omitempty"`
-	RelationshipType       *FamilyRelationshipType `json:"relationship_type,omitempty"`
-	Version                int64                   `json:"version"`
+	MarriagePlaceLongitude *string `json:"marriage_place_longitude"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds          *[]openapi_types.UUID   `json:"note_ids,omitempty"`
+	Notes            *string                 `json:"notes,omitempty"`
+	Partner1Id       *openapi_types.UUID     `json:"partner1_id,omitempty"`
+	Partner2Id       *openapi_types.UUID     `json:"partner2_id,omitempty"`
+	RelationshipType *FamilyRelationshipType `json:"relationship_type,omitempty"`
+	Version          int64                   `json:"version"`
 }
 
 // FamilyRelationshipType defines model for Family.RelationshipType.
@@ -951,8 +955,12 @@ type FamilyChildRelationshipType string
 
 // FamilyCreate defines model for FamilyCreate.
 type FamilyCreate struct {
-	MarriageDate     *string                       `json:"marriage_date,omitempty"`
-	MarriagePlace    *string                       `json:"marriage_place,omitempty"`
+	MarriageDate  *string `json:"marriage_date,omitempty"`
+	MarriagePlace *string `json:"marriage_place,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds          *[]openapi_types.UUID         `json:"note_ids,omitempty"`
+	Notes            *string                       `json:"notes,omitempty"`
 	Partner1Id       *openapi_types.UUID           `json:"partner1_id,omitempty"`
 	Partner2Id       *openapi_types.UUID           `json:"partner2_id,omitempty"`
 	RelationshipType *FamilyCreateRelationshipType `json:"relationship_type,omitempty"`
@@ -974,13 +982,17 @@ type FamilyDetail struct {
 	MarriagePlaceLatitude *string `json:"marriage_place_latitude"`
 
 	// MarriagePlaceLongitude Longitude in GEDCOM format (e.g., "W89.6501")
-	MarriagePlaceLongitude *string                       `json:"marriage_place_longitude"`
-	Partner1               *PersonSummary                `json:"partner1,omitempty"`
-	Partner1Id             *openapi_types.UUID           `json:"partner1_id,omitempty"`
-	Partner2               *PersonSummary                `json:"partner2,omitempty"`
-	Partner2Id             *openapi_types.UUID           `json:"partner2_id,omitempty"`
-	RelationshipType       *FamilyDetailRelationshipType `json:"relationship_type,omitempty"`
-	Version                int64                         `json:"version"`
+	MarriagePlaceLongitude *string `json:"marriage_place_longitude"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds          *[]openapi_types.UUID         `json:"note_ids,omitempty"`
+	Notes            *string                       `json:"notes,omitempty"`
+	Partner1         *PersonSummary                `json:"partner1,omitempty"`
+	Partner1Id       *openapi_types.UUID           `json:"partner1_id,omitempty"`
+	Partner2         *PersonSummary                `json:"partner2,omitempty"`
+	Partner2Id       *openapi_types.UUID           `json:"partner2_id,omitempty"`
+	RelationshipType *FamilyDetailRelationshipType `json:"relationship_type,omitempty"`
+	Version          int64                         `json:"version"`
 }
 
 // FamilyDetailRelationshipType defines model for FamilyDetail.RelationshipType.
@@ -1021,8 +1033,12 @@ type FamilySummary struct {
 
 // FamilyUpdate defines model for FamilyUpdate.
 type FamilyUpdate struct {
-	MarriageDate     *string                       `json:"marriage_date,omitempty"`
-	MarriagePlace    *string                       `json:"marriage_place,omitempty"`
+	MarriageDate  *string `json:"marriage_date,omitempty"`
+	MarriagePlace *string `json:"marriage_place,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds          *[]openapi_types.UUID         `json:"note_ids,omitempty"`
+	Notes            *string                       `json:"notes,omitempty"`
 	Partner1Id       *openapi_types.UUID           `json:"partner1_id,omitempty"`
 	Partner2Id       *openapi_types.UUID           `json:"partner2_id,omitempty"`
 	RelationshipType *FamilyUpdateRelationshipType `json:"relationship_type,omitempty"`
@@ -1516,7 +1532,10 @@ type Person struct {
 	Gender              *PersonGender      `json:"gender,omitempty"`
 	GivenName           string             `json:"given_name"`
 	Id                  openapi_types.UUID `json:"id"`
-	Notes               *string            `json:"notes,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes   *string               `json:"notes,omitempty"`
 
 	// ResearchStatus Confidence level of genealogical data per GPS standards
 	ResearchStatus *ResearchStatus `json:"research_status,omitempty"`
@@ -1540,7 +1559,10 @@ type PersonCreate struct {
 	DeathPlace *string             `json:"death_place,omitempty"`
 	Gender     *PersonCreateGender `json:"gender,omitempty"`
 	GivenName  string              `json:"given_name"`
-	Notes      *string             `json:"notes,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes   *string               `json:"notes,omitempty"`
 
 	// ResearchStatus Confidence level of genealogical data per GPS standards
 	ResearchStatus *ResearchStatus `json:"research_status,omitempty"`
@@ -1579,7 +1601,10 @@ type PersonDetail struct {
 
 	// Names All name variants for the person (birth, married, aliases, etc.)
 	Names *[]PersonName `json:"names,omitempty"`
-	Notes *string       `json:"notes,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes   *string               `json:"notes,omitempty"`
 
 	// ResearchStatus Confidence level of genealogical data per GPS standards
 	ResearchStatus *ResearchStatus `json:"research_status,omitempty"`
@@ -1687,7 +1712,10 @@ type PersonUpdate struct {
 	DeathPlace *string             `json:"death_place,omitempty"`
 	Gender     *PersonUpdateGender `json:"gender,omitempty"`
 	GivenName  *string             `json:"given_name,omitempty"`
-	Notes      *string             `json:"notes,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes   *string               `json:"notes,omitempty"`
 
 	// ResearchStatus Confidence level of genealogical data per GPS standards
 	ResearchStatus *ResearchStatus `json:"research_status,omitempty"`
@@ -1953,10 +1981,13 @@ type Source struct {
 	CitationCount  *int               `json:"citation_count,omitempty"`
 	CollectionName *string            `json:"collection_name,omitempty"`
 	Id             openapi_types.UUID `json:"id"`
-	Notes          *string            `json:"notes,omitempty"`
-	PublishDate    *string            `json:"publish_date,omitempty"`
-	Publisher      *string            `json:"publisher,omitempty"`
-	RepositoryName *string            `json:"repository_name,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds        *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes          *string               `json:"notes,omitempty"`
+	PublishDate    *string               `json:"publish_date,omitempty"`
+	Publisher      *string               `json:"publisher,omitempty"`
+	RepositoryName *string               `json:"repository_name,omitempty"`
 
 	// SourceType Type of source (e.g., vital_record, census, newspaper)
 	SourceType string  `json:"source_type"`
@@ -1972,10 +2003,13 @@ type SourceCreate struct {
 	Author         *string `json:"author,omitempty"`
 	CallNumber     *string `json:"call_number,omitempty"`
 	CollectionName *string `json:"collection_name,omitempty"`
-	Notes          *string `json:"notes,omitempty"`
-	PublishDate    *string `json:"publish_date,omitempty"`
-	Publisher      *string `json:"publisher,omitempty"`
-	RepositoryName *string `json:"repository_name,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds        *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes          *string               `json:"notes,omitempty"`
+	PublishDate    *string               `json:"publish_date,omitempty"`
+	Publisher      *string               `json:"publisher,omitempty"`
+	RepositoryName *string               `json:"repository_name,omitempty"`
 
 	// SourceType Type of source (e.g., vital_record, census, newspaper)
 	SourceType string  `json:"source_type"`
@@ -1993,10 +2027,13 @@ type SourceDetail struct {
 	Citations      *[]Citation        `json:"citations,omitempty"`
 	CollectionName *string            `json:"collection_name,omitempty"`
 	Id             openapi_types.UUID `json:"id"`
-	Notes          *string            `json:"notes,omitempty"`
-	PublishDate    *string            `json:"publish_date,omitempty"`
-	Publisher      *string            `json:"publisher,omitempty"`
-	RepositoryName *string            `json:"repository_name,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds        *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes          *string               `json:"notes,omitempty"`
+	PublishDate    *string               `json:"publish_date,omitempty"`
+	Publisher      *string               `json:"publisher,omitempty"`
+	RepositoryName *string               `json:"repository_name,omitempty"`
 
 	// SourceType Type of source (e.g., vital_record, census, newspaper)
 	SourceType string  `json:"source_type"`
@@ -2027,13 +2064,16 @@ type SourceUpdate struct {
 	Author         *string `json:"author,omitempty"`
 	CallNumber     *string `json:"call_number,omitempty"`
 	CollectionName *string `json:"collection_name,omitempty"`
-	Notes          *string `json:"notes,omitempty"`
-	PublishDate    *string `json:"publish_date,omitempty"`
-	Publisher      *string `json:"publisher,omitempty"`
-	RepositoryName *string `json:"repository_name,omitempty"`
-	SourceType     *string `json:"source_type,omitempty"`
-	Title          *string `json:"title,omitempty"`
-	Url            *string `json:"url,omitempty"`
+
+	// NoteIds IDs of linked Note records
+	NoteIds        *[]openapi_types.UUID `json:"note_ids,omitempty"`
+	Notes          *string               `json:"notes,omitempty"`
+	PublishDate    *string               `json:"publish_date,omitempty"`
+	Publisher      *string               `json:"publisher,omitempty"`
+	RepositoryName *string               `json:"repository_name,omitempty"`
+	SourceType     *string               `json:"source_type,omitempty"`
+	Title          *string               `json:"title,omitempty"`
+	Url            *string               `json:"url,omitempty"`
 
 	// Version Current version for optimistic locking
 	Version int64 `json:"version"`

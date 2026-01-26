@@ -1665,6 +1665,8 @@ export interface components {
             /** @description Longitude in GEDCOM format (e.g., "W71.0589") */
             death_place_longitude?: string | null;
             notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
             research_status?: components["schemas"]["ResearchStatus"];
             /**
              * Format: int64
@@ -1687,6 +1689,8 @@ export interface components {
             death_date?: string;
             death_place?: string;
             notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
             research_status?: components["schemas"]["ResearchStatus"];
         };
         PersonUpdate: {
@@ -1699,6 +1703,8 @@ export interface components {
             death_date?: string;
             death_place?: string;
             notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
             research_status?: components["schemas"]["ResearchStatus"];
             /**
              * Format: int64
@@ -1741,6 +1747,9 @@ export interface components {
             marriage_place_latitude?: string | null;
             /** @description Longitude in GEDCOM format (e.g., "W89.6501") */
             marriage_place_longitude?: string | null;
+            notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
             /** Format: int64 */
             version: number;
         };
@@ -1753,6 +1762,9 @@ export interface components {
             relationship_type?: "marriage" | "partnership" | "unknown";
             marriage_date?: string;
             marriage_place?: string;
+            notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
         };
         FamilyUpdate: {
             /** Format: uuid */
@@ -1763,6 +1775,9 @@ export interface components {
             relationship_type?: "marriage" | "partnership" | "unknown";
             marriage_date?: string;
             marriage_place?: string;
+            notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
             /** Format: int64 */
             version: number;
         };
@@ -2256,6 +2271,8 @@ export interface components {
             collection_name?: string;
             call_number?: string;
             notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
             /** @description Number of citations referencing this source */
             citation_count?: number;
             /**
@@ -2277,6 +2294,8 @@ export interface components {
             collection_name?: string;
             call_number?: string;
             notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
         };
         SourceUpdate: {
             source_type?: string;
@@ -2290,6 +2309,8 @@ export interface components {
             collection_name?: string;
             call_number?: string;
             notes?: string;
+            /** @description IDs of linked Note records */
+            note_ids?: string[];
             /**
              * Format: int64
              * @description Current version for optimistic locking

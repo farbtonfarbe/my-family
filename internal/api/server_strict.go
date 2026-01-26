@@ -821,6 +821,12 @@ func (ss *StrictServer) CreateFamily(ctx context.Context, request CreateFamilyRe
 	if request.Body.MarriagePlace != nil {
 		input.MarriagePlace = *request.Body.MarriagePlace
 	}
+	if request.Body.Notes != nil {
+		input.Notes = *request.Body.Notes
+	}
+	if request.Body.NoteIds != nil {
+		input.NoteIDs = *request.Body.NoteIds
+	}
 
 	result, err := ss.server.commandHandler.CreateFamily(ctx, input)
 	if err != nil {
@@ -867,6 +873,12 @@ func (ss *StrictServer) UpdateFamily(ctx context.Context, request UpdateFamilyRe
 	if request.Body.RelationshipType != nil {
 		relType := string(*request.Body.RelationshipType)
 		input.RelationshipType = &relType
+	}
+	if request.Body.Notes != nil {
+		input.Notes = request.Body.Notes
+	}
+	if request.Body.NoteIds != nil {
+		input.NoteIDs = request.Body.NoteIds
 	}
 
 	_, err := ss.server.commandHandler.UpdateFamily(ctx, input)
@@ -1513,6 +1525,9 @@ func (ss *StrictServer) CreatePerson(ctx context.Context, request CreatePersonRe
 	if request.Body.Notes != nil {
 		input.Notes = *request.Body.Notes
 	}
+	if request.Body.NoteIds != nil {
+		input.NoteIDs = *request.Body.NoteIds
+	}
 	if request.Body.ResearchStatus != nil {
 		input.ResearchStatus = string(*request.Body.ResearchStatus)
 	}
@@ -1585,6 +1600,9 @@ func (ss *StrictServer) UpdatePerson(ctx context.Context, request UpdatePersonRe
 	}
 	if request.Body.Notes != nil {
 		input.Notes = request.Body.Notes
+	}
+	if request.Body.NoteIds != nil {
+		input.NoteIDs = request.Body.NoteIds
 	}
 	if request.Body.ResearchStatus != nil {
 		rs := string(*request.Body.ResearchStatus)
@@ -2563,6 +2581,9 @@ func (ss *StrictServer) CreateSource(ctx context.Context, request CreateSourceRe
 	if request.Body.Notes != nil {
 		input.Notes = *request.Body.Notes
 	}
+	if request.Body.NoteIds != nil {
+		input.NoteIDs = *request.Body.NoteIds
+	}
 
 	result, err := ss.server.commandHandler.CreateSource(ctx, input)
 	if err != nil {
@@ -2659,6 +2680,9 @@ func (ss *StrictServer) UpdateSource(ctx context.Context, request UpdateSourceRe
 	}
 	if request.Body.Notes != nil {
 		input.Notes = request.Body.Notes
+	}
+	if request.Body.NoteIds != nil {
+		input.NoteIDs = request.Body.NoteIds
 	}
 
 	_, err := ss.server.commandHandler.UpdateSource(ctx, input)
@@ -2933,6 +2957,13 @@ func convertQueryPersonToGenerated(p query.Person) Person {
 	if p.Notes != nil {
 		resp.Notes = p.Notes
 	}
+	if len(p.NoteIDs) > 0 {
+		noteIDs := make([]openapi_types.UUID, len(p.NoteIDs))
+		for i, id := range p.NoteIDs {
+			noteIDs[i] = id
+		}
+		resp.NoteIds = &noteIDs
+	}
 	if p.ResearchStatus != nil {
 		rs := ResearchStatus(*p.ResearchStatus)
 		resp.ResearchStatus = &rs
@@ -2968,6 +2999,13 @@ func convertQueryPersonDetailToGenerated(pd *query.PersonDetail) PersonDetail {
 	}
 	if pd.Notes != nil {
 		resp.Notes = pd.Notes
+	}
+	if len(pd.NoteIDs) > 0 {
+		noteIDs := make([]openapi_types.UUID, len(pd.NoteIDs))
+		for i, id := range pd.NoteIDs {
+			noteIDs[i] = id
+		}
+		resp.NoteIds = &noteIDs
 	}
 	if pd.ResearchStatus != nil {
 		rs := ResearchStatus(*pd.ResearchStatus)
@@ -3065,6 +3103,16 @@ func convertQueryFamilyToGenerated(f query.Family) Family {
 	if f.MarriagePlace != nil {
 		resp.MarriagePlace = f.MarriagePlace
 	}
+	if f.Notes != nil {
+		resp.Notes = f.Notes
+	}
+	if len(f.NoteIDs) > 0 {
+		noteIDs := make([]openapi_types.UUID, len(f.NoteIDs))
+		for i, id := range f.NoteIDs {
+			noteIDs[i] = id
+		}
+		resp.NoteIds = &noteIDs
+	}
 
 	return resp
 }
@@ -3093,6 +3141,16 @@ func convertQueryFamilyDetailToGenerated(fd query.FamilyDetail) FamilyDetail {
 	}
 	if fd.MarriagePlace != nil {
 		resp.MarriagePlace = fd.MarriagePlace
+	}
+	if fd.Notes != nil {
+		resp.Notes = fd.Notes
+	}
+	if len(fd.NoteIDs) > 0 {
+		noteIDs := make([]openapi_types.UUID, len(fd.NoteIDs))
+		for i, id := range fd.NoteIDs {
+			noteIDs[i] = id
+		}
+		resp.NoteIds = &noteIDs
 	}
 
 	// Add partner details if available
@@ -3155,6 +3213,16 @@ func convertQueryFamilyToFamilyDetail(f query.Family) FamilyDetail {
 	}
 	if f.MarriagePlace != nil {
 		resp.MarriagePlace = f.MarriagePlace
+	}
+	if f.Notes != nil {
+		resp.Notes = f.Notes
+	}
+	if len(f.NoteIDs) > 0 {
+		noteIDs := make([]openapi_types.UUID, len(f.NoteIDs))
+		for i, id := range f.NoteIDs {
+			noteIDs[i] = id
+		}
+		resp.NoteIds = &noteIDs
 	}
 
 	return resp
@@ -3273,7 +3341,7 @@ func convertQueryGroupSheetChildToGenerated(c *query.GroupSheetChild) GroupSheet
 // convertQuerySourceToGenerated converts a query.Source to the generated Source type.
 func convertQuerySourceToGenerated(s query.Source) Source {
 	citationCount := s.CitationCount
-	return Source{
+	resp := Source{
 		Id:             s.ID,
 		SourceType:     s.SourceType,
 		Title:          s.Title,
@@ -3288,6 +3356,14 @@ func convertQuerySourceToGenerated(s query.Source) Source {
 		CitationCount:  &citationCount,
 		Version:        s.Version,
 	}
+	if len(s.NoteIDs) > 0 {
+		noteIDs := make([]openapi_types.UUID, len(s.NoteIDs))
+		for i, id := range s.NoteIDs {
+			noteIDs[i] = id
+		}
+		resp.NoteIds = &noteIDs
+	}
+	return resp
 }
 
 // convertQuerySourceDetailToGenerated converts a query.SourceDetail to the generated SourceDetail type.
@@ -3307,6 +3383,14 @@ func convertQuerySourceDetailToGenerated(sd query.SourceDetail) SourceDetail {
 		Notes:          sd.Notes,
 		CitationCount:  &citationCount,
 		Version:        sd.Version,
+	}
+
+	if len(sd.NoteIDs) > 0 {
+		noteIDs := make([]openapi_types.UUID, len(sd.NoteIDs))
+		for i, id := range sd.NoteIDs {
+			noteIDs[i] = id
+		}
+		resp.NoteIds = &noteIDs
 	}
 
 	if len(sd.Citations) > 0 {

@@ -36,6 +36,7 @@ type Person struct {
 	DeathDate      *domain.GenDate `json:"death_date,omitempty"`
 	DeathPlace     *string         `json:"death_place,omitempty"`
 	Notes          *string         `json:"notes,omitempty"`
+	NoteIDs        []uuid.UUID     `json:"note_ids,omitempty"`
 	ResearchStatus *string         `json:"research_status,omitempty"`
 	Version        int64           `json:"version"`
 }
@@ -252,6 +253,9 @@ func convertReadModelToPerson(rm repository.PersonReadModel) Person {
 	}
 	if rm.Notes != "" {
 		p.Notes = &rm.Notes
+	}
+	if len(rm.NoteIDs) > 0 {
+		p.NoteIDs = rm.NoteIDs
 	}
 	if rm.ResearchStatus != "" {
 		rs := string(rm.ResearchStatus)

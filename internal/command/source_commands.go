@@ -30,6 +30,7 @@ type CreateSourceInput struct {
 	CollectionName string
 	CallNumber     string
 	Notes          string
+	NoteIDs        []uuid.UUID
 }
 
 // CreateSourceResult contains the result of creating a source.
@@ -73,6 +74,9 @@ func (h *Handler) CreateSource(ctx context.Context, input CreateSourceInput) (*C
 	if input.Notes != "" {
 		source.Notes = input.Notes
 	}
+	if len(input.NoteIDs) > 0 {
+		source.NoteIDs = input.NoteIDs
+	}
 
 	// Validate source
 	if err := source.Validate(); err != nil {
@@ -107,6 +111,7 @@ type UpdateSourceInput struct {
 	CollectionName *string
 	CallNumber     *string
 	Notes          *string
+	NoteIDs        *[]uuid.UUID
 	Version        int64 // Required for optimistic locking
 }
 
@@ -193,6 +198,10 @@ func (h *Handler) UpdateSource(ctx context.Context, input UpdateSourceInput) (*U
 	if input.Notes != nil {
 		testSource.Notes = *input.Notes
 		changes["notes"] = *input.Notes
+	}
+	if input.NoteIDs != nil {
+		testSource.NoteIDs = *input.NoteIDs
+		changes["note_ids"] = *input.NoteIDs
 	}
 
 	// No changes?

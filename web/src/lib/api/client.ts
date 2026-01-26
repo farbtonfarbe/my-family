@@ -37,6 +37,7 @@ export interface Person {
 	death_date?: GenDate;
 	death_place?: string;
 	notes?: string;
+	note_ids?: string[];
 	research_status?: ResearchStatus;
 	version: number;
 }
@@ -103,6 +104,8 @@ export interface Family {
 	relationship_type?: 'marriage' | 'partnership' | 'unknown';
 	marriage_date?: GenDate;
 	marriage_place?: string;
+	notes?: string;
+	note_ids?: string[];
 	child_count?: number;
 	version: number;
 }
@@ -317,6 +320,7 @@ export interface Source {
 	collection_name?: string;
 	call_number?: string;
 	notes?: string;
+	note_ids?: string[];
 	citation_count: number;
 	version: number;
 }
@@ -496,6 +500,14 @@ export interface MediaUpdate {
 	crop_top?: number;
 	crop_width?: number;
 	crop_height?: number;
+	version: number;
+}
+
+// Note types
+export interface Note {
+	id: string;
+	text: string;
+	gedcom_xref?: string;
 	version: number;
 }
 
@@ -1055,6 +1067,17 @@ class ApiClient {
 			'GET',
 			`/relationship/${encodeURIComponent(personId1)}/${encodeURIComponent(personId2)}`
 		);
+	}
+
+	// Note endpoints
+	async getNote(id: string): Promise<Note> {
+		return this.request<Note>('GET', `/notes/${id}`);
+	}
+
+	async getNotesByIds(ids: string[]): Promise<Note[]> {
+		if (ids.length === 0) return [];
+		const results = await Promise.all(ids.map((id) => this.getNote(id).catch(() => null)));
+		return results.filter((note): note is Note => note !== null);
 	}
 }
 

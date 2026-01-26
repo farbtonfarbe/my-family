@@ -5,6 +5,7 @@
 	import ChangeHistory from '$lib/components/ChangeHistory.svelte';
 	import MediaGallery from '$lib/components/MediaGallery.svelte';
 	import CitationSection from '$lib/components/CitationSection.svelte';
+	import NotesSection from '$lib/components/NotesSection.svelte';
 	import UncertaintyBadge from '$lib/components/UncertaintyBadge.svelte';
 	import { createShortcutHandler } from '$lib/keyboard/useShortcuts.svelte';
 
@@ -285,12 +286,7 @@
 					</div>
 				</div>
 
-				{#if person.notes}
-					<div class="info-section">
-						<h2>Notes</h2>
-						<p class="notes">{person.notes}</p>
-					</div>
-				{/if}
+				<NotesSection notes={person.notes} noteIds={person.note_ids} />
 
 				{#if person.families_as_partner && person.families_as_partner.length > 0}
 					<div class="info-section">

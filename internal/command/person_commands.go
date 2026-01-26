@@ -29,6 +29,7 @@ type CreatePersonInput struct {
 	DeathDate      string
 	DeathPlace     string
 	Notes          string
+	NoteIDs        []uuid.UUID
 	ResearchStatus string
 }
 
@@ -66,6 +67,9 @@ func (h *Handler) CreatePerson(ctx context.Context, input CreatePersonInput) (*C
 	if input.Notes != "" {
 		person.Notes = input.Notes
 	}
+	if len(input.NoteIDs) > 0 {
+		person.NoteIDs = input.NoteIDs
+	}
 	if input.ResearchStatus != "" {
 		person.ResearchStatus = domain.ParseResearchStatus(input.ResearchStatus)
 	}
@@ -101,6 +105,7 @@ type UpdatePersonInput struct {
 	DeathDate      *string
 	DeathPlace     *string
 	Notes          *string
+	NoteIDs        *[]uuid.UUID
 	ResearchStatus *string
 	Version        int64 // Required for optimistic locking
 }
@@ -181,6 +186,10 @@ func (h *Handler) UpdatePerson(ctx context.Context, input UpdatePersonInput) (*U
 	if input.Notes != nil {
 		testPerson.Notes = *input.Notes
 		changes["notes"] = *input.Notes
+	}
+	if input.NoteIDs != nil {
+		testPerson.NoteIDs = *input.NoteIDs
+		changes["note_ids"] = *input.NoteIDs
 	}
 	if input.ResearchStatus != nil {
 		testPerson.ResearchStatus = domain.ParseResearchStatus(*input.ResearchStatus)

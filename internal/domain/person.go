@@ -23,6 +23,7 @@ type Person struct {
 	DeathDate      *GenDate       `json:"death_date,omitempty"`
 	DeathPlace     string         `json:"death_place,omitempty"`
 	Notes          string         `json:"notes,omitempty"`
+	NoteIDs        []uuid.UUID    `json:"note_ids,omitempty"`        // Cross-referenced Note records
 	ResearchStatus ResearchStatus `json:"research_status,omitempty"` // Confidence level (GPS-compliant)
 	GedcomXref     string         `json:"gedcom_xref,omitempty"`     // Original GEDCOM @XREF@ for round-trip
 	Version        int64          `json:"version"`                   // Optimistic locking version

@@ -50,6 +50,7 @@ type PersonCreated struct {
 	DeathDate      *GenDate       `json:"death_date,omitempty"`
 	DeathPlace     string         `json:"death_place,omitempty"`
 	Notes          string         `json:"notes,omitempty"`
+	NoteIDs        []uuid.UUID    `json:"note_ids,omitempty"`
 	ResearchStatus ResearchStatus `json:"research_status,omitempty"`
 	GedcomXref     string         `json:"gedcom_xref,omitempty"`
 }
@@ -75,6 +76,7 @@ func NewPersonCreated(p *Person) PersonCreated {
 		DeathDate:      p.DeathDate,
 		DeathPlace:     p.DeathPlace,
 		Notes:          p.Notes,
+		NoteIDs:        p.NoteIDs,
 		ResearchStatus: p.ResearchStatus,
 		GedcomXref:     p.GedcomXref,
 	}
@@ -127,6 +129,8 @@ type FamilyCreated struct {
 	RelationshipType RelationType `json:"relationship_type,omitempty"`
 	MarriageDate     *GenDate     `json:"marriage_date,omitempty"`
 	MarriagePlace    string       `json:"marriage_place,omitempty"`
+	Notes            string       `json:"notes,omitempty"`
+	NoteIDs          []uuid.UUID  `json:"note_ids,omitempty"`
 	GedcomXref       string       `json:"gedcom_xref,omitempty"`
 }
 
@@ -143,6 +147,8 @@ func NewFamilyCreated(f *Family) FamilyCreated {
 		RelationshipType: f.RelationshipType,
 		MarriageDate:     f.MarriageDate,
 		MarriagePlace:    f.MarriagePlace,
+		Notes:            f.Notes,
+		NoteIDs:          f.NoteIDs,
 		GedcomXref:       f.GedcomXref,
 	}
 }
@@ -278,19 +284,20 @@ type EventMetadata struct {
 // SourceCreated event is emitted when a new source is created.
 type SourceCreated struct {
 	BaseEvent
-	SourceID       uuid.UUID  `json:"source_id"`
-	SourceType     SourceType `json:"source_type"`
-	Title          string     `json:"title"`
-	Author         string     `json:"author,omitempty"`
-	Publisher      string     `json:"publisher,omitempty"`
-	PublishDate    *GenDate   `json:"publish_date,omitempty"`
-	URL            string     `json:"url,omitempty"`
-	RepositoryID   *uuid.UUID `json:"repository_id,omitempty"`
-	RepositoryName string     `json:"repository_name,omitempty"`
-	CollectionName string     `json:"collection_name,omitempty"`
-	CallNumber     string     `json:"call_number,omitempty"`
-	Notes          string     `json:"notes,omitempty"`
-	GedcomXref     string     `json:"gedcom_xref,omitempty"`
+	SourceID       uuid.UUID   `json:"source_id"`
+	SourceType     SourceType  `json:"source_type"`
+	Title          string      `json:"title"`
+	Author         string      `json:"author,omitempty"`
+	Publisher      string      `json:"publisher,omitempty"`
+	PublishDate    *GenDate    `json:"publish_date,omitempty"`
+	URL            string      `json:"url,omitempty"`
+	RepositoryID   *uuid.UUID  `json:"repository_id,omitempty"`
+	RepositoryName string      `json:"repository_name,omitempty"`
+	CollectionName string      `json:"collection_name,omitempty"`
+	CallNumber     string      `json:"call_number,omitempty"`
+	Notes          string      `json:"notes,omitempty"`
+	NoteIDs        []uuid.UUID `json:"note_ids,omitempty"`
+	GedcomXref     string      `json:"gedcom_xref,omitempty"`
 }
 
 func (e SourceCreated) EventType() string      { return "SourceCreated" }
@@ -312,6 +319,7 @@ func NewSourceCreated(s *Source) SourceCreated {
 		CollectionName: s.CollectionName,
 		CallNumber:     s.CallNumber,
 		Notes:          s.Notes,
+		NoteIDs:        s.NoteIDs,
 		GedcomXref:     s.GedcomXref,
 	}
 }

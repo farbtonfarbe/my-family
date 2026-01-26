@@ -140,6 +140,7 @@ func (p *Projector) projectPersonCreated(ctx context.Context, e domain.PersonCre
 		DeathDateSort:  deathDateSort,
 		DeathPlace:     e.DeathPlace,
 		Notes:          e.Notes,
+		NoteIDs:        e.NoteIDs,
 		ResearchStatus: e.ResearchStatus,
 		Version:        version,
 		UpdatedAt:      e.OccurredAt(),
@@ -208,6 +209,10 @@ func (p *Projector) projectPersonUpdated(ctx context.Context, e domain.PersonUpd
 			if v, ok := value.(string); ok {
 				person.Notes = v
 			}
+		case "note_ids":
+			if v, ok := value.([]uuid.UUID); ok {
+				person.NoteIDs = v
+			}
 		case "research_status":
 			if v, ok := value.(string); ok {
 				person.ResearchStatus = domain.ParseResearchStatus(v)
@@ -260,6 +265,8 @@ func (p *Projector) projectFamilyCreated(ctx context.Context, e domain.FamilyCre
 		MarriageDateRaw:  marriageDateRaw,
 		MarriageDateSort: marriageDateSort,
 		MarriagePlace:    e.MarriagePlace,
+		Notes:            e.Notes,
+		NoteIDs:          e.NoteIDs,
 		ChildCount:       0,
 		Version:          version,
 		UpdatedAt:        e.OccurredAt(),
@@ -302,6 +309,14 @@ func (p *Projector) projectFamilyUpdated(ctx context.Context, e domain.FamilyUpd
 		case "marriage_place":
 			if v, ok := value.(string); ok {
 				family.MarriagePlace = v
+			}
+		case "notes":
+			if v, ok := value.(string); ok {
+				family.Notes = v
+			}
+		case "note_ids":
+			if v, ok := value.([]uuid.UUID); ok {
+				family.NoteIDs = v
 			}
 		}
 	}
@@ -451,6 +466,7 @@ func (p *Projector) projectSourceCreated(ctx context.Context, e domain.SourceCre
 		CollectionName:  e.CollectionName,
 		CallNumber:      e.CallNumber,
 		Notes:           e.Notes,
+		NoteIDs:         e.NoteIDs,
 		GedcomXref:      e.GedcomXref,
 		CitationCount:   0,
 		Version:         version,
@@ -518,6 +534,10 @@ func (p *Projector) projectSourceUpdated(ctx context.Context, e domain.SourceUpd
 		case "notes":
 			if v, ok := value.(string); ok {
 				source.Notes = v
+			}
+		case "note_ids":
+			if v, ok := value.([]uuid.UUID); ok {
+				source.NoteIDs = v
 			}
 		}
 	}

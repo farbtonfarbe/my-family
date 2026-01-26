@@ -29,6 +29,8 @@ type Family struct {
 	RelationshipType *string         `json:"relationship_type,omitempty"`
 	MarriageDate     *domain.GenDate `json:"marriage_date,omitempty"`
 	MarriagePlace    *string         `json:"marriage_place,omitempty"`
+	Notes            *string         `json:"notes,omitempty"`
+	NoteIDs          []uuid.UUID     `json:"note_ids,omitempty"`
 	ChildCount       int             `json:"child_count"`
 	Version          int64           `json:"version"`
 }
@@ -165,6 +167,12 @@ func convertReadModelToFamily(rm repository.FamilyReadModel) Family {
 	}
 	if rm.MarriagePlace != "" {
 		f.MarriagePlace = &rm.MarriagePlace
+	}
+	if rm.Notes != "" {
+		f.Notes = &rm.Notes
+	}
+	if len(rm.NoteIDs) > 0 {
+		f.NoteIDs = rm.NoteIDs
 	}
 
 	return f

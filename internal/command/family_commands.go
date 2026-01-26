@@ -27,6 +27,8 @@ type CreateFamilyInput struct {
 	RelationshipType string
 	MarriageDate     string
 	MarriagePlace    string
+	Notes            string
+	NoteIDs          []uuid.UUID
 }
 
 // CreateFamilyResult contains the result of creating a family.
@@ -81,6 +83,12 @@ func (h *Handler) CreateFamily(ctx context.Context, input CreateFamilyInput) (*C
 	if input.MarriagePlace != "" {
 		family.MarriagePlace = input.MarriagePlace
 	}
+	if input.Notes != "" {
+		family.Notes = input.Notes
+	}
+	if len(input.NoteIDs) > 0 {
+		family.NoteIDs = input.NoteIDs
+	}
 
 	// Validate
 	if err := family.Validate(); err != nil {
@@ -115,6 +123,8 @@ type UpdateFamilyInput struct {
 	RelationshipType *string
 	MarriageDate     *string
 	MarriagePlace    *string
+	Notes            *string
+	NoteIDs          *[]uuid.UUID
 	Version          int64
 }
 
@@ -155,6 +165,12 @@ func (h *Handler) UpdateFamily(ctx context.Context, input UpdateFamilyInput) (*U
 	}
 	if input.MarriagePlace != nil {
 		changes["marriage_place"] = *input.MarriagePlace
+	}
+	if input.Notes != nil {
+		changes["notes"] = *input.Notes
+	}
+	if input.NoteIDs != nil {
+		changes["note_ids"] = *input.NoteIDs
 	}
 
 	if len(changes) == 0 {

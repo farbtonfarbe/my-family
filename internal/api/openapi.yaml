@@ -2785,6 +2785,12 @@ components:
           description: Longitude in GEDCOM format (e.g., "W71.0589")
         notes:
           type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
         research_status:
           $ref: '#/components/schemas/ResearchStatus'
         version:
@@ -2820,6 +2826,12 @@ components:
           type: string
         notes:
           type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
         research_status:
           $ref: '#/components/schemas/ResearchStatus'
 
@@ -2848,6 +2860,12 @@ components:
           type: string
         notes:
           type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
         research_status:
           $ref: '#/components/schemas/ResearchStatus'
         version:
@@ -2931,6 +2949,14 @@ components:
           type: string
           nullable: true
           description: Longitude in GEDCOM format (e.g., "W89.6501")
+        notes:
+          type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
         version:
           type: integer
           format: int64
@@ -2951,6 +2977,14 @@ components:
           type: string
         marriage_place:
           type: string
+        notes:
+          type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
 
     FamilyUpdate:
       type: object
@@ -2969,6 +3003,14 @@ components:
           type: string
         marriage_place:
           type: string
+        notes:
+          type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
         version:
           type: integer
           format: int64
@@ -3783,6 +3825,12 @@ components:
           type: string
         notes:
           type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
         citation_count:
           type: integer
           description: Number of citations referencing this source
@@ -3817,6 +3865,12 @@ components:
           type: string
         notes:
           type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
 
     SourceUpdate:
       type: object
@@ -3843,6 +3897,12 @@ components:
           type: string
         notes:
           type: string
+        note_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of linked Note records
         version:
           type: integer
           format: int64

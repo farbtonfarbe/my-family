@@ -27,6 +27,7 @@ type PersonReadModel struct {
 	DeathPlaceLat  *string               `json:"death_place_lat,omitempty"`
 	DeathPlaceLong *string               `json:"death_place_long,omitempty"`
 	Notes          string                `json:"notes,omitempty"`
+	NoteIDs        []uuid.UUID           `json:"note_ids,omitempty"`
 	ResearchStatus domain.ResearchStatus `json:"research_status,omitempty"`
 	Version        int64                 `json:"version"`
 	UpdatedAt      time.Time             `json:"updated_at"`
@@ -45,6 +46,8 @@ type FamilyReadModel struct {
 	MarriagePlace     string              `json:"marriage_place,omitempty"`
 	MarriagePlaceLat  *string             `json:"marriage_place_lat,omitempty"`
 	MarriagePlaceLong *string             `json:"marriage_place_long,omitempty"`
+	Notes             string              `json:"notes,omitempty"`
+	NoteIDs           []uuid.UUID         `json:"note_ids,omitempty"`
 	ChildCount        int                 `json:"child_count"`
 	Version           int64               `json:"version"`
 	UpdatedAt         time.Time           `json:"updated_at"`
@@ -82,6 +85,7 @@ type SourceReadModel struct {
 	CollectionName  string            `json:"collection_name,omitempty"`
 	CallNumber      string            `json:"call_number,omitempty"`
 	Notes           string            `json:"notes,omitempty"`
+	NoteIDs         []uuid.UUID       `json:"note_ids,omitempty"`
 	GedcomXref      string            `json:"gedcom_xref,omitempty"`
 	CitationCount   int               `json:"citation_count"`
 	Version         int64             `json:"version"`

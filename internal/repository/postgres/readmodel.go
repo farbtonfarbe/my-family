@@ -300,6 +300,12 @@ func (s *ReadModelStore) runMigrations() {
 	_, _ = s.db.Exec(`ALTER TABLE persons ADD COLUMN IF NOT EXISTS death_place_long VARCHAR(20)`)
 	_, _ = s.db.Exec(`ALTER TABLE families ADD COLUMN IF NOT EXISTS marriage_place_lat VARCHAR(20)`)
 	_, _ = s.db.Exec(`ALTER TABLE families ADD COLUMN IF NOT EXISTS marriage_place_long VARCHAR(20)`)
+
+	// Add note_ids columns for linked Note records (JSON array of UUIDs)
+	_, _ = s.db.Exec(`ALTER TABLE persons ADD COLUMN IF NOT EXISTS note_ids JSONB`)
+	_, _ = s.db.Exec(`ALTER TABLE families ADD COLUMN IF NOT EXISTS notes TEXT`)
+	_, _ = s.db.Exec(`ALTER TABLE families ADD COLUMN IF NOT EXISTS note_ids JSONB`)
+	_, _ = s.db.Exec(`ALTER TABLE sources ADD COLUMN IF NOT EXISTS note_ids JSONB`)
 }
 
 // GetPerson retrieves a person by ID.
@@ -308,7 +314,7 @@ func (s *ReadModelStore) GetPerson(ctx context.Context, id uuid.UUID) (*reposito
 		SELECT id, given_name, surname, full_name, gender,
 			   birth_date_raw, birth_date_sort, birth_place, birth_place_lat, birth_place_long,
 			   death_date_raw, death_date_sort, death_place, death_place_lat, death_place_long,
-			   notes, research_status, version, updated_at
+			   notes, note_ids, research_status, version, updated_at
 		FROM persons WHERE id = $1
 	`, id)
 
@@ -361,7 +367,7 @@ func (s *ReadModelStore) ListPersons(ctx context.Context, opts repository.ListOp
 		SELECT id, given_name, surname, full_name, gender,
 			   birth_date_raw, birth_date_sort, birth_place, birth_place_lat, birth_place_long,
 			   death_date_raw, death_date_sort, death_place, death_place_lat, death_place_long,
-			   notes, research_status, version, updated_at
+			   notes, note_ids, research_status, version, updated_at
 		FROM persons
 		%s
 		ORDER BY %s %s NULLS LAST, given_name %s
@@ -402,7 +408,7 @@ func (s *ReadModelStore) SearchPersons(ctx context.Context, query string, fuzzy 
 				SELECT p.id, p.given_name, p.surname, p.full_name, p.gender,
 					   p.birth_date_raw, p.birth_date_sort, p.birth_place, p.birth_place_lat, p.birth_place_long,
 					   p.death_date_raw, p.death_date_sort, p.death_place, p.death_place_lat, p.death_place_long,
-					   p.notes, p.research_status, p.version, p.updated_at,
+					   p.notes, p.note_ids, p.research_status, p.version, p.updated_at,
 					   TRUE as is_primary,
 					   GREATEST(
 						   similarity(p.given_name, $1),
@@ -418,7 +424,7 @@ func (s *ReadModelStore) SearchPersons(ctx context.Context, query string, fuzzy 
 				SELECT p.id, p.given_name, p.surname, p.full_name, p.gender,
 					   p.birth_date_raw, p.birth_date_sort, p.birth_place, p.birth_place_lat, p.birth_place_long,
 					   p.death_date_raw, p.death_date_sort, p.death_place, p.death_place_lat, p.death_place_long,
-					   p.notes, p.research_status, p.version, p.updated_at,
+					   p.notes, p.note_ids, p.research_status, p.version, p.updated_at,
 					   pn.is_primary,
 					   GREATEST(
 						   similarity(pn.given_name, $1),
@@ -434,7 +440,7 @@ func (s *ReadModelStore) SearchPersons(ctx context.Context, query string, fuzzy 
 			SELECT DISTINCT ON (id) id, given_name, surname, full_name, gender,
 				   birth_date_raw, birth_date_sort, birth_place, birth_place_lat, birth_place_long,
 				   death_date_raw, death_date_sort, death_place, death_place_lat, death_place_long,
-				   notes, research_status, version, updated_at
+				   notes, note_ids, research_status, version, updated_at
 			FROM matched_persons
 			ORDER BY id, is_primary DESC, sim_score DESC
 			LIMIT $2
@@ -447,7 +453,7 @@ func (s *ReadModelStore) SearchPersons(ctx context.Context, query string, fuzzy 
 				SELECT p.id, p.given_name, p.surname, p.full_name, p.gender,
 					   p.birth_date_raw, p.birth_date_sort, p.birth_place, p.birth_place_lat, p.birth_place_long,
 					   p.death_date_raw, p.death_date_sort, p.death_place, p.death_place_lat, p.death_place_long,
-					   p.notes, p.research_status, p.version, p.updated_at,
+					   p.notes, p.note_ids, p.research_status, p.version, p.updated_at,
 					   TRUE as is_primary,
 					   ts_rank(p.search_vector, plainto_tsquery('english', $1)) as search_rank
 				FROM persons p
@@ -460,7 +466,7 @@ func (s *ReadModelStore) SearchPersons(ctx context.Context, query string, fuzzy 
 				SELECT p.id, p.given_name, p.surname, p.full_name, p.gender,
 					   p.birth_date_raw, p.birth_date_sort, p.birth_place, p.birth_place_lat, p.birth_place_long,
 					   p.death_date_raw, p.death_date_sort, p.death_place, p.death_place_lat, p.death_place_long,
-					   p.notes, p.research_status, p.version, p.updated_at,
+					   p.notes, p.note_ids, p.research_status, p.version, p.updated_at,
 					   pn.is_primary,
 					   ts_rank(pn.search_vector, plainto_tsquery('english', $1)) as search_rank
 				FROM persons p
@@ -472,7 +478,7 @@ func (s *ReadModelStore) SearchPersons(ctx context.Context, query string, fuzzy 
 			SELECT DISTINCT ON (id) id, given_name, surname, full_name, gender,
 				   birth_date_raw, birth_date_sort, birth_place, birth_place_lat, birth_place_long,
 				   death_date_raw, death_date_sort, death_place, death_place_lat, death_place_long,
-				   notes, research_status, version, updated_at
+				   notes, note_ids, research_status, version, updated_at
 			FROM matched_persons
 			ORDER BY id, is_primary DESC, search_rank DESC
 			LIMIT $2
@@ -498,11 +504,20 @@ func (s *ReadModelStore) SearchPersons(ctx context.Context, query string, fuzzy 
 
 // SavePerson saves or updates a person.
 func (s *ReadModelStore) SavePerson(ctx context.Context, person *repository.PersonReadModel) error {
+	var noteIDsJSON any
+	if len(person.NoteIDs) > 0 {
+		jsonBytes, err := json.Marshal(person.NoteIDs)
+		if err != nil {
+			return fmt.Errorf("marshal note_ids: %w", err)
+		}
+		noteIDsJSON = jsonBytes
+	}
+
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO persons (id, given_name, surname, gender, birth_date_raw, birth_date_sort, birth_place,
 							 birth_place_lat, birth_place_long, death_date_raw, death_date_sort, death_place,
-							 death_place_lat, death_place_long, notes, research_status, version, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+							 death_place_lat, death_place_long, notes, note_ids, research_status, version, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
 		ON CONFLICT(id) DO UPDATE SET
 			given_name = EXCLUDED.given_name,
 			surname = EXCLUDED.surname,
@@ -518,6 +533,7 @@ func (s *ReadModelStore) SavePerson(ctx context.Context, person *repository.Pers
 			death_place_lat = EXCLUDED.death_place_lat,
 			death_place_long = EXCLUDED.death_place_long,
 			notes = EXCLUDED.notes,
+			note_ids = EXCLUDED.note_ids,
 			research_status = EXCLUDED.research_status,
 			version = EXCLUDED.version,
 			updated_at = EXCLUDED.updated_at
@@ -526,7 +542,7 @@ func (s *ReadModelStore) SavePerson(ctx context.Context, person *repository.Pers
 		nullableStringPtr(person.BirthPlaceLat), nullableStringPtr(person.BirthPlaceLong),
 		nullableString(person.DeathDateRaw), nullableTime(person.DeathDateSort), nullableString(person.DeathPlace),
 		nullableStringPtr(person.DeathPlaceLat), nullableStringPtr(person.DeathPlaceLong),
-		nullableString(person.Notes), nullableString(string(person.ResearchStatus)), person.Version, person.UpdatedAt)
+		nullableString(person.Notes), noteIDsJSON, nullableString(string(person.ResearchStatus)), person.Version, person.UpdatedAt)
 
 	return err
 }
@@ -653,7 +669,7 @@ func (s *ReadModelStore) GetFamily(ctx context.Context, id uuid.UUID) (*reposito
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, partner1_id, partner1_name, partner2_id, partner2_name,
 			   relationship_type, marriage_date_raw, marriage_date_sort, marriage_place,
-			   marriage_place_lat, marriage_place_long,
+			   marriage_place_lat, marriage_place_long, notes, note_ids,
 			   child_count, version, updated_at
 		FROM families WHERE id = $1
 	`, id)
@@ -672,7 +688,7 @@ func (s *ReadModelStore) ListFamilies(ctx context.Context, opts repository.ListO
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, partner1_id, partner1_name, partner2_id, partner2_name,
 			   relationship_type, marriage_date_raw, marriage_date_sort, marriage_place,
-			   marriage_place_lat, marriage_place_long,
+			   marriage_place_lat, marriage_place_long, notes, note_ids,
 			   child_count, version, updated_at
 		FROM families
 		ORDER BY updated_at DESC
@@ -700,7 +716,7 @@ func (s *ReadModelStore) GetFamiliesForPerson(ctx context.Context, personID uuid
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, partner1_id, partner1_name, partner2_id, partner2_name,
 			   relationship_type, marriage_date_raw, marriage_date_sort, marriage_place,
-			   marriage_place_lat, marriage_place_long,
+			   marriage_place_lat, marriage_place_long, notes, note_ids,
 			   child_count, version, updated_at
 		FROM families
 		WHERE partner1_id = $1 OR partner2_id = $1
@@ -724,12 +740,21 @@ func (s *ReadModelStore) GetFamiliesForPerson(ctx context.Context, personID uuid
 
 // SaveFamily saves or updates a family.
 func (s *ReadModelStore) SaveFamily(ctx context.Context, family *repository.FamilyReadModel) error {
+	var noteIDsJSON any
+	if len(family.NoteIDs) > 0 {
+		jsonBytes, err := json.Marshal(family.NoteIDs)
+		if err != nil {
+			return fmt.Errorf("marshal note_ids: %w", err)
+		}
+		noteIDsJSON = jsonBytes
+	}
+
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO families (id, partner1_id, partner1_name, partner2_id, partner2_name,
 							  relationship_type, marriage_date_raw, marriage_date_sort, marriage_place,
-							  marriage_place_lat, marriage_place_long,
+							  marriage_place_lat, marriage_place_long, notes, note_ids,
 							  child_count, version, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT(id) DO UPDATE SET
 			partner1_id = EXCLUDED.partner1_id,
 			partner1_name = EXCLUDED.partner1_name,
@@ -741,6 +766,8 @@ func (s *ReadModelStore) SaveFamily(ctx context.Context, family *repository.Fami
 			marriage_place = EXCLUDED.marriage_place,
 			marriage_place_lat = EXCLUDED.marriage_place_lat,
 			marriage_place_long = EXCLUDED.marriage_place_long,
+			notes = EXCLUDED.notes,
+			note_ids = EXCLUDED.note_ids,
 			child_count = EXCLUDED.child_count,
 			version = EXCLUDED.version,
 			updated_at = EXCLUDED.updated_at
@@ -749,6 +776,7 @@ func (s *ReadModelStore) SaveFamily(ctx context.Context, family *repository.Fami
 		nullableString(string(family.RelationshipType)), nullableString(family.MarriageDateRaw),
 		nullableTime(family.MarriageDateSort), nullableString(family.MarriagePlace),
 		nullableStringPtr(family.MarriagePlaceLat), nullableStringPtr(family.MarriagePlaceLong),
+		nullableString(family.Notes), noteIDsJSON,
 		family.ChildCount, family.Version, family.UpdatedAt)
 
 	return err
@@ -807,7 +835,7 @@ func (s *ReadModelStore) GetChildrenOfFamily(ctx context.Context, familyID uuid.
 		SELECT p.id, p.given_name, p.surname, p.full_name, p.gender,
 			   p.birth_date_raw, p.birth_date_sort, p.birth_place, p.birth_place_lat, p.birth_place_long,
 			   p.death_date_raw, p.death_date_sort, p.death_place, p.death_place_lat, p.death_place_long,
-			   p.notes, p.research_status, p.version, p.updated_at
+			   p.notes, p.note_ids, p.research_status, p.version, p.updated_at
 		FROM persons p
 		JOIN family_children fc ON p.id = fc.person_id
 		WHERE fc.family_id = $1
@@ -835,7 +863,7 @@ func (s *ReadModelStore) GetChildFamily(ctx context.Context, personID uuid.UUID)
 	row := s.db.QueryRowContext(ctx, `
 		SELECT f.id, f.partner1_id, f.partner1_name, f.partner2_id, f.partner2_name,
 			   f.relationship_type, f.marriage_date_raw, f.marriage_date_sort, f.marriage_place,
-			   f.marriage_place_lat, f.marriage_place_long,
+			   f.marriage_place_lat, f.marriage_place_long, f.notes, f.note_ids,
 			   f.child_count, f.version, f.updated_at
 		FROM families f
 		JOIN family_children fc ON f.id = fc.family_id
@@ -941,6 +969,7 @@ func scanPerson(row rowScanner) (*repository.PersonReadModel, error) {
 		birthPlaceLat, birthPlaceLong    sql.NullString
 		deathDateRaw, deathPlace, notes  sql.NullString
 		deathPlaceLat, deathPlaceLong    sql.NullString
+		noteIDsJSON                      []byte
 		researchStatus                   sql.NullString
 		birthDateSort, deathDateSort     sql.NullTime
 		version                          int64
@@ -950,7 +979,7 @@ func scanPerson(row rowScanner) (*repository.PersonReadModel, error) {
 	err := row.Scan(&id, &givenName, &surname, &fullName, &gender,
 		&birthDateRaw, &birthDateSort, &birthPlace, &birthPlaceLat, &birthPlaceLong,
 		&deathDateRaw, &deathDateSort, &deathPlace, &deathPlaceLat, &deathPlaceLong,
-		&notes, &researchStatus, &version, &updatedAt)
+		&notes, &noteIDsJSON, &researchStatus, &version, &updatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -973,6 +1002,10 @@ func scanPerson(row rowScanner) (*repository.PersonReadModel, error) {
 		ResearchStatus: domain.ResearchStatus(researchStatus.String),
 		Version:        version,
 		UpdatedAt:      updatedAt,
+	}
+
+	if len(noteIDsJSON) > 0 {
+		_ = json.Unmarshal(noteIDsJSON, &p.NoteIDs)
 	}
 
 	// Set coordinate pointers if values are present
@@ -1010,6 +1043,8 @@ func scanFamily(row rowScanner) (*repository.FamilyReadModel, error) {
 		partner1Name, partner2Name              sql.NullString
 		relType, marriageDateRaw, marriagePlace sql.NullString
 		marriagePlaceLat, marriagePlaceLong     sql.NullString
+		notes                                   sql.NullString
+		noteIDsJSON                             []byte
 		marriageDateSort                        sql.NullTime
 		childCount                              int
 		version                                 int64
@@ -1018,7 +1053,7 @@ func scanFamily(row rowScanner) (*repository.FamilyReadModel, error) {
 
 	err := row.Scan(&id, &partner1ID, &partner1Name, &partner2ID, &partner2Name,
 		&relType, &marriageDateRaw, &marriageDateSort, &marriagePlace,
-		&marriagePlaceLat, &marriagePlaceLong,
+		&marriagePlaceLat, &marriagePlaceLong, &notes, &noteIDsJSON,
 		&childCount, &version, &updatedAt)
 
 	if err == sql.ErrNoRows {
@@ -1035,9 +1070,14 @@ func scanFamily(row rowScanner) (*repository.FamilyReadModel, error) {
 		RelationshipType: domain.RelationType(relType.String),
 		MarriageDateRaw:  marriageDateRaw.String,
 		MarriagePlace:    marriagePlace.String,
+		Notes:            notes.String,
 		ChildCount:       childCount,
 		Version:          version,
 		UpdatedAt:        updatedAt,
+	}
+
+	if len(noteIDsJSON) > 0 {
+		_ = json.Unmarshal(noteIDsJSON, &f.NoteIDs)
 	}
 
 	if partner1ID.Valid {
@@ -1119,7 +1159,7 @@ func nullableBytes(b []byte) any {
 func (s *ReadModelStore) GetSource(ctx context.Context, id uuid.UUID) (*repository.SourceReadModel, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, source_type, title, author, publisher, publish_date_raw, publish_date_sort,
-			   url, repository_name, collection_name, call_number, notes, gedcom_xref,
+			   url, repository_name, collection_name, call_number, notes, note_ids, gedcom_xref,
 			   citation_count, version, updated_at
 		FROM sources WHERE id = $1
 	`, id)
@@ -1137,7 +1177,7 @@ func (s *ReadModelStore) ListSources(ctx context.Context, opts repository.ListOp
 
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, source_type, title, author, publisher, publish_date_raw, publish_date_sort,
-			   url, repository_name, collection_name, call_number, notes, gedcom_xref,
+			   url, repository_name, collection_name, call_number, notes, note_ids, gedcom_xref,
 			   citation_count, version, updated_at
 		FROM sources
 		ORDER BY title ASC
@@ -1164,7 +1204,7 @@ func (s *ReadModelStore) ListSources(ctx context.Context, opts repository.ListOp
 func (s *ReadModelStore) SearchSources(ctx context.Context, query string, limit int) ([]repository.SourceReadModel, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, source_type, title, author, publisher, publish_date_raw, publish_date_sort,
-			   url, repository_name, collection_name, call_number, notes, gedcom_xref,
+			   url, repository_name, collection_name, call_number, notes, note_ids, gedcom_xref,
 			   citation_count, version, updated_at
 		FROM sources
 		WHERE title ILIKE '%' || $1 || '%' OR author ILIKE '%' || $1 || '%'
@@ -1190,11 +1230,20 @@ func (s *ReadModelStore) SearchSources(ctx context.Context, query string, limit 
 
 // SaveSource saves or updates a source.
 func (s *ReadModelStore) SaveSource(ctx context.Context, source *repository.SourceReadModel) error {
+	var noteIDsJSON any
+	if len(source.NoteIDs) > 0 {
+		jsonBytes, err := json.Marshal(source.NoteIDs)
+		if err != nil {
+			return fmt.Errorf("marshal note_ids: %w", err)
+		}
+		noteIDsJSON = jsonBytes
+	}
+
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO sources (id, source_type, title, author, publisher, publish_date_raw, publish_date_sort,
-							 url, repository_name, collection_name, call_number, notes, gedcom_xref,
+							 url, repository_name, collection_name, call_number, notes, note_ids, gedcom_xref,
 							 citation_count, version, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		ON CONFLICT(id) DO UPDATE SET
 			source_type = EXCLUDED.source_type,
 			title = EXCLUDED.title,
@@ -1207,6 +1256,7 @@ func (s *ReadModelStore) SaveSource(ctx context.Context, source *repository.Sour
 			collection_name = EXCLUDED.collection_name,
 			call_number = EXCLUDED.call_number,
 			notes = EXCLUDED.notes,
+			note_ids = EXCLUDED.note_ids,
 			gedcom_xref = EXCLUDED.gedcom_xref,
 			citation_count = EXCLUDED.citation_count,
 			version = EXCLUDED.version,
@@ -1216,7 +1266,7 @@ func (s *ReadModelStore) SaveSource(ctx context.Context, source *repository.Sour
 		nullableString(source.PublishDateRaw), nullableTime(source.PublishDateSort),
 		nullableString(source.URL), nullableString(source.RepositoryName),
 		nullableString(source.CollectionName), nullableString(source.CallNumber),
-		nullableString(source.Notes), nullableString(source.GedcomXref),
+		nullableString(source.Notes), noteIDsJSON, nullableString(source.GedcomXref),
 		source.CitationCount, source.Version, source.UpdatedAt)
 
 	return err
@@ -1365,7 +1415,9 @@ func scanSourceRow(row rowScanner) (*repository.SourceReadModel, error) {
 		sourceType, title                 string
 		author, publisher, publishDateRaw sql.NullString
 		url, repoName, collName, callNum  sql.NullString
-		notes, gedcomXref                 sql.NullString
+		notes                             sql.NullString
+		noteIDsJSON                       []byte
+		gedcomXref                        sql.NullString
 		publishDateSort                   sql.NullTime
 		citationCount                     int
 		version                           int64
@@ -1373,7 +1425,7 @@ func scanSourceRow(row rowScanner) (*repository.SourceReadModel, error) {
 	)
 
 	err := row.Scan(&id, &sourceType, &title, &author, &publisher, &publishDateRaw, &publishDateSort,
-		&url, &repoName, &collName, &callNum, &notes, &gedcomXref,
+		&url, &repoName, &collName, &callNum, &notes, &noteIDsJSON, &gedcomXref,
 		&citationCount, &version, &updatedAt)
 
 	if err == sql.ErrNoRows {
@@ -1399,6 +1451,10 @@ func scanSourceRow(row rowScanner) (*repository.SourceReadModel, error) {
 		CitationCount:  citationCount,
 		Version:        version,
 		UpdatedAt:      updatedAt,
+	}
+
+	if len(noteIDsJSON) > 0 {
+		_ = json.Unmarshal(noteIDsJSON, &src.NoteIDs)
 	}
 
 	if publishDateSort.Valid {

@@ -80,6 +80,8 @@ type PersonData struct {
 	DeathPlaceLat  *string // Latitude in GEDCOM format
 	DeathPlaceLong *string // Longitude in GEDCOM format
 	Notes          string
+	NoteIDs        []uuid.UUID // Resolved note cross-references
+	NoteXrefs      []string    // Original note xrefs (like @N123@) before resolution
 
 	// Names contains all name variants from the GEDCOM file.
 	// The first name is also stored in the main GivenName/Surname fields.
@@ -104,6 +106,9 @@ type FamilyData struct {
 	MarriagePlaceLong *string // Longitude in GEDCOM format (e.g., "W89.6501")
 	ChildIDs          []uuid.UUID
 	ChildRelTypes     []domain.ChildRelationType
+	Notes             string
+	NoteIDs           []uuid.UUID // Resolved note cross-references
+	NoteXrefs         []string    // Original note xrefs (like @N123@) before resolution
 }
 
 // SourceData contains parsed source data ready for creation.
@@ -119,6 +124,8 @@ type SourceData struct {
 	RepositoryName string     // Fallback for unlinked repositories
 	CallNumber     string     // CALN - location within repository
 	Notes          string
+	NoteIDs        []uuid.UUID // Resolved note cross-references
+	NoteXrefs      []string    // Original note xrefs (like @N123@) before resolution
 }
 
 // RepositoryData contains parsed repository data ready for creation.
@@ -363,6 +370,30 @@ func (imp *Importer) Import(ctx context.Context, reader io.Reader) (*ImportResul
 		result.NoteXrefToID[note.XRef] = noteData.ID
 	}
 
+	// Resolve note cross-references to UUIDs now that all notes are parsed
+	// This converts @N123@ style xrefs to actual UUID references
+	for i := range persons {
+		for _, xref := range persons[i].NoteXrefs {
+			if noteID, ok := result.NoteXrefToID[xref]; ok {
+				persons[i].NoteIDs = append(persons[i].NoteIDs, noteID)
+			}
+		}
+	}
+	for i := range families {
+		for _, xref := range families[i].NoteXrefs {
+			if noteID, ok := result.NoteXrefToID[xref]; ok {
+				families[i].NoteIDs = append(families[i].NoteIDs, noteID)
+			}
+		}
+	}
+	for i := range sources {
+		for _, xref := range sources[i].NoteXrefs {
+			if noteID, ok := result.NoteXrefToID[xref]; ok {
+				sources[i].NoteIDs = append(sources[i].NoteIDs, noteID)
+			}
+		}
+	}
+
 	// Sixth pass: parse SUBM (submitter) records
 	// These track who created or submitted the genealogical data
 	var submitters []SubmitterData
@@ -531,18 +562,13 @@ func parseIndividual(indi *gedcom.Individual, _ *gedcom.Document, result *Import
 		}
 	}
 
-	// Collect notes - in cacack/gedcom-go, Notes contains XRefs to note records
-	// For inline notes, we need to check for notes stored differently
-	// The library stores inline notes as part of the individual's Tags
-	var notes []string
-	for _, tag := range indi.Tags {
-		if tag.Tag == "NOTE" && tag.Value != "" {
-			notes = append(notes, tag.Value)
-		}
+	// Collect notes - separate inline notes from cross-references
+	// Inline notes are stored directly, xrefs are resolved after note records are parsed
+	inlineNotes, noteXrefs := separateNotes(indi.Tags)
+	if len(inlineNotes) > 0 {
+		person.Notes = strings.Join(inlineNotes, "\n\n")
 	}
-	if len(notes) > 0 {
-		person.Notes = strings.Join(notes, "\n\n")
-	}
+	person.NoteXrefs = noteXrefs
 
 	// Extract FamilySearch Family Tree ID (vendor extension)
 	person.FamilySearchID = indi.FamilySearchID
@@ -622,6 +648,13 @@ func parseFamily(fam *gedcom.Family, doc *gedcom.Document, result *ImportResult)
 		}
 	}
 
+	// Collect notes - separate inline notes from cross-references
+	inlineNotes, noteXrefs := separateNotes(fam.Tags)
+	if len(inlineNotes) > 0 {
+		family.Notes = strings.Join(inlineNotes, "\n\n")
+	}
+	family.NoteXrefs = noteXrefs
+
 	return family
 }
 
@@ -681,16 +714,12 @@ func parseSource(src *gedcom.Source, result *ImportResult) SourceData {
 	// which is not currently supported in the flat tag structure.
 	// This can be added when gedcom-go provides structured REPO references.
 
-	// Collect notes
-	var notes []string
-	for _, tag := range src.Tags {
-		if tag.Tag == "NOTE" && tag.Value != "" {
-			notes = append(notes, tag.Value)
-		}
+	// Collect notes - separate inline notes from cross-references
+	inlineNotes, noteXrefs := separateNotes(src.Tags)
+	if len(inlineNotes) > 0 {
+		source.Notes = strings.Join(inlineNotes, "\n\n")
 	}
-	if len(notes) > 0 {
-		source.Notes = strings.Join(notes, "\n\n")
-	}
+	source.NoteXrefs = noteXrefs
 
 	// Default source type to "other" if not specified
 	source.SourceType = string(domain.SourceOther)
@@ -753,6 +782,22 @@ func parseNote(note *gedcom.Note) NoteData {
 		GedcomXref: note.XRef,
 		Text:       note.FullText(),
 	}
+}
+
+// separateNotes separates inline notes from cross-references in NOTE tags.
+// Inline notes are actual text content, while cross-references are pointers
+// to shared NOTE records (format: @N123@).
+func separateNotes(tags []*gedcom.Tag) (inlineNotes []string, noteXrefs []string) {
+	for _, tag := range tags {
+		if tag != nil && tag.Tag == "NOTE" && tag.Value != "" {
+			if strings.HasPrefix(tag.Value, "@") && strings.HasSuffix(tag.Value, "@") {
+				noteXrefs = append(noteXrefs, tag.Value)
+			} else {
+				inlineNotes = append(inlineNotes, tag.Value)
+			}
+		}
+	}
+	return
 }
 
 // parseSubmitter converts a GEDCOM submitter record to SubmitterData.
